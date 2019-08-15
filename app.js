@@ -87,7 +87,7 @@ app.post('/save', function (req, res) {
 var server = app.listen(3333, function () {
     var port = server.address().port;
     console.log('Example app listening at http://localhost:'+ port);
-    opn('http://localhost:'+ port);
+    // opn('http://localhost:'+ port);
 });
 
 function findSync(startPath) {
