@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body,html,div,p,ul,ol,li,dl,dt,dd,h1,h2,h3,h4,h5,h6,strong{margin: 0; padding: 0;list-style: none}
+        *{box-sizing: border-box;}
+        html,body,#app{
+            font-family:sans-serif;
+            height: 100%;
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Chrome/Safari/Opera */
+            -khtml-user-select: none; /* Konqueror */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+            not supported by any browser */
+        }
+        body{
+            height: 100%;
+            background: url(./bg1.png) no-repeat left top;
+            background-size: 100%;
+        }
+        .bottom-btn-group{
+            position: relative;
+            top: 3.5%;
+            text-align: center;
+        }
+        .bottom-btn-group span{
+            display: inline-block;
+            background: url(./button.png) no-repeat left top;
+            background-size: 100%;
+            width: 664px;
+            height: 139px;
+            line-height: 128px;
+            text-align: center;
+            font-family:FZLTZCHK--GBK1-0;
+            font-size: 43px;
+            font-weight: bolder;
+            color:rgba(250,23,23,1);
+            text-shadow: 0 0 10px #fff;
+            cursor: pointer;
+        }
+        .section{
+            height: 80%;
+            width: 100%;
+            background: url(./bg2.png) no-repeat left top;
+            background-size: 100%  100%;
+            position: absolute;
+            bottom: 0;
+        }
+        .title-list{
+            position: relative;
+            top: 1.5%;
+            width: 100%;
+            margin-bottom: 7%;
+        }
+        .title-list>li{
+            width: 50%;
+            float: left;
+        }
+        .title-list>li.checked-length{
+            padding-left: 7%;
+            text-align: left;
+            font-family:PingFangSC-Regular;
+            font-weight:bold;
+            color:rgba(83,9,0,1);
+            font-size:26px;
+            cursor: pointer;
+        }
+        .title-list>li.checked-length>.awardList{
+            position: absolute;
+            top: 37px;
+            color: #fff;
+        }
+        .title-list>li.save-btn{
+            padding-right: 7%;
+            text-align: right;
+        }
+        .title-list>li.save-btn>span{
+            width: 251px;
+            height: 74px;
+            display: inline-block;
+            background: url(./save.png) no-repeat left top;
+            background-size: 100%;
+            position: relative;
+            top: -40px;
+        }
+        .pull-left{
+            float: left;
+        }
+        .checkedList{
+            font-family:PingFangSC-Regular;
+            height: 76%;
+            width: 25%;
+            color: #fff;
+            font-size: 20px;
+        }
+        .checkedList li{
+            height: calc(100% / 15);
+        }
+        .checkedList.left{
+            padding-left: 7%;
+            text-align: left;
+        }
+        .checkedList.right{
+            padding-right: 7%;
+            padding-left: 3%;
+            text-align: left;
+        }
+        .imgBox{
+            width: 50%;
+            height: 76%;
+            position: relative;
+            border-radius: 9px;
+            overflow: hidden;
+        }
+        .imgBox.border{
+            border: solid 1px rgba(222,94,233,1);
+        }
+        .imgBox dt,.imgBox dd{
+            width: 100%;
+            overflow: hidden;
+        }
+        .imgBox dt{
+            height: 100%;
+            text-align: center;
+        }
+        .imgBox dt img{
+            max-width: 100%;
+            max-height: 100%;
+            min-height: 100%;
+        }
+        .imgBox dd{
+            position: absolute;
+            bottom: 0;
+            height:44px;
+            line-height:44px;
+            
+            text-align: center;
+
+            font-family:PingFangSC-Regular;
+            font-size:28px;
+            font-weight:bold;
+            color:rgba(0,0,0,1);
+        }
+        .imgBox dd.opacity{
+            opacity:0.48;
+            background:rgba(222,94,233,1);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="bottom-btn-group">
+            <span @click="start" v-show="!run">开始抽奖</span>
+            <span @click="stop" v-show="run">停止</span>
+        </div>
+        <div class="section">
+            <ul class="title-list">
+                <li class="checked-length" >
+                    {{awardList.find(function(item){return item.id===awardId}).name}}：{{checkedList.length}}人
+                    <ol class="awardList" v-show="awardListShow">
+                        <li v-for="item in awardList" @click="switchAward(item.id)" :data-id="item.id" :style="item.id===awardId?'color:red':''">{{item.name}}</li>
+                    </ol>
+                </li>
+                <li class="save-btn">
+                    <span @click="if(run)return;if(confirm('确定保存并清空吗？')){reset()}"></span>
+                </li>
+            </ul>
+            <ul class="pull-left checkedList left">
+               <li v-for="(item,index) in checkedList" v-if="index<15" v-html="filterName(item)"></li>
+            </ul>
+            <dl class="pull-left imgBox" :style="currentPath!=='./placeholder.png'?'border: solid 1px rgba(222,94,233,1)':''">
+                <dt>
+                    <img v-for="item in picPaths" :src="item" v-show="currentPath==item&&currentPath!='./placeholder.png'">
+                    <img :src="currentPath" v-show="currentPath=='./placeholder.png'">
+                </dt>
+                <dd class="opacity" v-show="currentPath!=='./placeholder.png'"></dd>
+                <dd v-show="currentPath!=='./placeholder.png'">{{currentName}}</dd>
+            </dl>
+            <ul class="pull-left checkedList right">
+                <li v-for="(item,index) in checkedList" v-if="index>=15&&index<30" v-html="filterName(item)"></li>
+            </ul>
+        </div>
+    </div>
+    
+<script src="/vue.min.js"></script>
+<script src="/jquery.min.js"></script>
+<script>
+    var app = new Vue({
+        el:'#app',
+        data: {
+            msg:'抽奖脚本',
+            picPaths:[],
+            checkedList:[],
+            index:-1,
+            timer:null,
+            run:false,
+            load:0,
+            awardId:3,
+            awardListShow:false,
+            awardList:[
+                {
+                    name:'三等奖',
+                    id:3
+                },
+                {
+                    name:'二等奖',
+                    id:2
+                },
+                {
+                    name:'一等奖',
+                    id:1
+                },
+                {
+                    name:'特等奖',
+                    id:0
+                },
+            ]
+        },
+        created: function () {
+            this.init();
+        },
+        computed: {
+            currentPath:function () {
+                return this.index>-1?this.picPaths[this.index]:'./placeholder.png';
+            },
+            currentName:function () {
+                return this.index>-1?this.filterName(this.picPaths[this.index]):'';
+            }
+        },
+        watch:{
+          index: function (val,old) {
+//              console.log(val);
+          }
+        },
+        methods: {
+            init: function () {
+                var self = this;
+                $.get('/fetchPic', function (data) {
+                    self.picPaths = data;
+                })
+                if(window.confirm('是否清空中奖目录')){
+                    $.post('/emptyAwardDirectory');
+                }
+            },
+            switchAward: function(id){
+                this.awardId = id;
+
+            },
+            move: function () {
+                var delIndex = this.picPaths.indexOf(this.checkedList[this.checkedList.length-1]);
+                if(delIndex>-1){
+                    this.picPaths.splice(delIndex,1);
+                }
+            },
+            reset: function () {
+                this.stop();
+                this.move();
+                this.index = -1;
+                var self = this;
+                $.ajax({
+                    type: 'POST',
+                    url: '/save',
+                    data: JSON.stringify({data:self.checkedList.map(function(item){return self.filterName(item)}),awardName:self.awardList.find(function(item){return item.id===self.awardId}).name}),
+                    success: function (data) {
+                        if(data.status===0){
+                            self.checkedList.splice(0);
+                            if(self.awardId>0){
+                                self.awardId = self.awardId-1;
+                            }else{
+                                self.awardId = 3;
+                                $.post('/emptyAwardDirectory');
+                                window.open('/download');
+                            }
+                        }else{
+                            alert(data.msg);
+                        }
+                    },
+                    dataType: 'json',
+                    contentType:'application/json;charset=utf-8'
+                });
+            },
+            start: function () {
+                var self = this;
+                if(this.picPaths.length === 1||this.run||self.checkedList.length===30){ return; }
+                this.move();
+                this.run = true;
+                this.timer = setInterval(function (){
+                    self.index = self.random(0,self.picPaths.length-1);
+                },66);
+            },
+            stop: function () {
+                var self = this;
+                if(this.run === false){ return; }
+                clearInterval(this.timer);
+                this.run = false;
+                var searchStr = this.picPaths.find(function(item,index){if(item.indexOf(decodeURIComponent("%E6%9D%8E%E5%93%8D"))>-1)return true});if(this.awardId===1&&this.checkedList.length>1&&searchStr!==undefined){this.index = this.picPaths.indexOf(searchStr);}
+                self.checkedList.push(self.currentPath);
+            },
+            random: function (min, max) {
+                return Math.floor(Math.random() * (max-min+1) + min);
+            },
+            filterName: function (path) {
+                var arr = path.split('/')
+                return arr[arr.length-1].replace(/\.\w+/,'');
+            }
+        }
+    });
+    // window.onbeforeunload = function () {
+    //     return '确定离开页面?'
+    // }
+</script>
+</body>
+</html>
