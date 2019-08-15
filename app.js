@@ -23,7 +23,7 @@ app.get('/fetchPic', function (req, res) {
     res.json(findSync('./imgs'));
 });
 app.post('/emptyAwardDirectory',function(req, res){
-    var fileUrl = './中奖名单';
+    var fileUrl = './drawnamelist';
     var files = fs.readdirSync(fileUrl);//读取该文件夹
     files.forEach(function(file){
         var stats = fs.statSync(fileUrl+'/'+file);
@@ -38,11 +38,11 @@ app.post('/emptyAwardDirectory',function(req, res){
     res.json({msg:"删除完成",status:0})
 })
 app.get('/download',function (req, res){
-    const output = fs.createWriteStream('./中奖名单.zip');
+    const output = fs.createWriteStream('./drawnamelist.zip');
     var archive = archiver('zip', {zlib: { level: 9 }});
     output.on('close', function(e) {
         console.log(archive.pointer() + ' total bytes');
-        res.download("./中奖名单.zip");
+        res.download("./drawnamelist.zip");
     });
     output.on('end', function() {
         console.log('Data has been drained');
@@ -57,8 +57,8 @@ app.get('/download',function (req, res){
         throw err;
     });
     archive.pipe(output);
-    archive.directory('./中奖名单');
-    archive.glob('./中奖名单/*.txt');
+    archive.directory('./drawnamelist');
+    archive.glob('./drawnamelist/*.txt');
     archive.finalize();
 });
 app.post('/save', function (req, res) {
@@ -67,12 +67,12 @@ app.post('/save', function (req, res) {
         return;
     }
     let writeList = (path)=>{
-        fs.exists('./中奖名单/'+path+'.txt', function (exists) {
+        fs.exists('./drawnamelist/'+path+'.txt', function (exists) {
             if(exists){
                 let arr = path.replace(/.txt/,'').split('_');
                 writeList(arr[0]+'_'+(arr.length>1?parseInt(arr[1])+1:1));
             }else{
-                fs.writeFile('./中奖名单/'+path+'.txt', JSON.stringify(req.body.data), function(err) {
+                fs.writeFile('./drawnamelist/'+path+'.txt', JSON.stringify(req.body.data), function(err) {
                     if (err) {
                         return console.error(err);
                     }
