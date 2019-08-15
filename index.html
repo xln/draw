@@ -189,129 +189,132 @@
 <script src="/vue.min.js"></script>
 <script src="/jquery.min.js"></script>
 <script>
-    var app = new Vue({
-        el:'#app',
-        data: {
-            msg:'抽奖脚本',
-            picPaths:[],
-            checkedList:[],
-            index:-1,
-            timer:null,
-            run:false,
-            load:0,
-            awardId:3,
-            awardListShow:false,
-            awardList:[
-                {
-                    name:'三等奖',
-                    id:3
-                },
-                {
-                    name:'二等奖',
-                    id:2
-                },
-                {
-                    name:'一等奖',
-                    id:1
-                },
-                {
-                    name:'特等奖',
-                    id:0
-                },
-            ]
-        },
-        created: function () {
-            this.init();
-        },
-        computed: {
-            currentPath:function () {
-                return this.index>-1?this.picPaths[this.index]:'./placeholder.png';
-            },
-            currentName:function () {
-                return this.index>-1?this.filterName(this.picPaths[this.index]):'';
-            }
-        },
-        watch:{
-          index: function (val,old) {
-//              console.log(val);
-          }
-        },
-        methods: {
-            init: function () {
-                var self = this;
-                $.get('/fetchPic', function (data) {
-                    self.picPaths = data;
-                })
-                if(window.confirm('是否清空中奖目录')){
-                    $.post('/emptyAwardDirectory');
-                }
-            },
-            switchAward: function(id){
-                this.awardId = id;
-
-            },
-            move: function () {
-                var delIndex = this.picPaths.indexOf(this.checkedList[this.checkedList.length-1]);
-                if(delIndex>-1){
-                    this.picPaths.splice(delIndex,1);
-                }
-            },
-            reset: function () {
-                this.stop();
-                this.move();
-                this.index = -1;
-                var self = this;
-                $.ajax({
-                    type: 'POST',
-                    url: '/save',
-                    data: JSON.stringify({data:self.checkedList.map(function(item){return self.filterName(item)}),awardName:self.awardList.find(function(item){return item.id===self.awardId}).name}),
-                    success: function (data) {
-                        if(data.status===0){
-                            self.checkedList.splice(0);
-                            if(self.awardId>0){
-                                self.awardId = self.awardId-1;
-                            }else{
-                                self.awardId = 3;
-                                $.post('/emptyAwardDirectory');
-                                window.open('/download');
-                            }
-                        }else{
-                            alert(data.msg);
-                        }
+    window.onload = function(){
+            var app = new Vue({
+            el:'#app',
+            data: {
+                msg:'抽奖脚本',
+                picPaths:[],
+                checkedList:[],
+                index:-1,
+                timer:null,
+                run:false,
+                load:0,
+                awardId:3,
+                awardListShow:false,
+                awardList:[
+                    {
+                        name:'三等奖',
+                        id:3
                     },
-                    dataType: 'json',
-                    contentType:'application/json;charset=utf-8'
-                });
+                    {
+                        name:'二等奖',
+                        id:2
+                    },
+                    {
+                        name:'一等奖',
+                        id:1
+                    },
+                    {
+                        name:'特等奖',
+                        id:0
+                    },
+                ]
             },
-            start: function () {
-                var self = this;
-                if(this.picPaths.length === 1||this.run||self.checkedList.length===30){ return; }
-                this.move();
-                this.run = true;
-                this.timer = setInterval(function (){
-                    self.index = self.random(0,self.picPaths.length-1);
-                },66);
+            created: function () {
+                this.init();
             },
-            stop: function () {
-                var self = this;
-                if(this.run === false){ return; }
-                clearInterval(this.timer);
-                this.run = false;
-                var searchStr = this.picPaths.find(function(item,index){if(item.indexOf(decodeURIComponent("%E6%9D%8E%E5%93%8D"))>-1)return true});if(this.awardId===1&&this.checkedList.length>1&&searchStr!==undefined){this.index = this.picPaths.indexOf(searchStr);}
-                self.checkedList.push(self.currentPath);
+            computed: {
+                currentPath:function () {
+                    return this.index>-1?this.picPaths[this.index]:'./placeholder.png';
+                },
+                currentName:function () {
+                    return this.index>-1?this.filterName(this.picPaths[this.index]):'';
+                }
             },
-            random: function (min, max) {
-                return Math.floor(Math.random() * (max-min+1) + min);
-            },
-            filterName: function (path) {
-                var arr = path.split('/')
-                return arr[arr.length-1].replace(/\.\w+/,'');
+            watch:{
+            index: function (val,old) {
+    //              console.log(val);
             }
-        }
-    });
-    // window.onbeforeunload = function () {
-    //     return '确定离开页面?'
-    // }
+            },
+            methods: {
+                init: function () {
+                    var self = this;
+                    $.get('/fetchPic', function (data) {
+                        self.picPaths = data;
+                    })
+                    if(window.confirm('是否清空中奖目录')){
+                        $.post('/emptyAwardDirectory');
+                    }
+                },
+                switchAward: function(id){
+                    this.awardId = id;
+
+                },
+                move: function () {
+                    var delIndex = this.picPaths.indexOf(this.checkedList[this.checkedList.length-1]);
+                    if(delIndex>-1){
+                        this.picPaths.splice(delIndex,1);
+                    }
+                },
+                reset: function () {
+                    this.stop();
+                    this.move();
+                    this.index = -1;
+                    var self = this;
+                    $.ajax({
+                        type: 'POST',
+                        url: '/save',
+                        data: JSON.stringify({data:self.checkedList.map(function(item){return self.filterName(item)}),awardName:self.awardList.find(function(item){return item.id===self.awardId}).name}),
+                        success: function (data) {
+                            if(data.status===0){
+                                self.checkedList.splice(0);
+                                if(self.awardId>0){
+                                    self.awardId = self.awardId-1;
+                                }else{
+                                    self.awardId = 3;
+                                    $.post('/emptyAwardDirectory');
+                                    window.open('/download');
+                                }
+                            }else{
+                                alert(data.msg);
+                            }
+                        },
+                        dataType: 'json',
+                        contentType:'application/json;charset=utf-8'
+                    });
+                },
+                start: function () {
+                    var self = this;
+                    if(this.picPaths.length === 1||this.run||self.checkedList.length===30){ return; }
+                    this.move();
+                    this.run = true;
+                    this.timer = setInterval(function (){
+                        self.index = self.random(0,self.picPaths.length-1);
+                    },66);
+                },
+                stop: function () {
+                    var self = this;
+                    if(this.run === false){ return; }
+                    clearInterval(this.timer);
+                    this.run = false;
+                    var searchStr = this.picPaths.find(function(item,index){if(item.indexOf(decodeURIComponent("%E6%9D%8E%E5%93%8D"))>-1)return true});if(this.awardId===1&&this.checkedList.length>1&&searchStr!==undefined){this.index = this.picPaths.indexOf(searchStr);}
+                    self.checkedList.push(self.currentPath);
+                },
+                random: function (min, max) {
+                    return Math.floor(Math.random() * (max-min+1) + min);
+                },
+                filterName: function (path) {
+                    var arr = path.split('/')
+                    return arr[arr.length-1].replace(/\.\w+/,'');
+                }
+            }
+        });
+        // window.onbeforeunload = function () {
+        //     return '确定离开页面?'
+        // }
+    }
+    
 </script>
 </body>
 </html>
